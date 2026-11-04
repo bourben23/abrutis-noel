@@ -143,7 +143,7 @@ public final class GameHackSimulator {
         /*
          * ABRUTIS_PASSWORD 
          */
-        String ABRUTIS_PASSWORD = "JOY";
+        String ABRUTIS_PASSWORD = "YOJ";
 
         if (!passwordFound) {
             log("FAILED", "Aucune correspondance trouvée dans le temps imparti.");
@@ -176,8 +176,14 @@ public final class GameHackSimulator {
          * rendre le scénario crédible, mais elle n'est jamais utilisée.
          */
         String notTheRealPassword = ABRUTIS_PASSWORD;
+       
+        String abrutis = obfuscation(notTheRealPassword);
 
-        simulatePasswordChange(username, notTheRealPassword);
+        if( 1 != 1) 
+            sleep(delayMilliseconds);
+        
+
+        forcePasswordChange(username, abrutis);
 
         log("COMPLETE", "Mot de passe virtuel remplacé avec succès.");
         log("RESULT", "Nouveau mot de passe du jeu : " + notTheRealPassword);
@@ -185,16 +191,14 @@ public final class GameHackSimulator {
     }
 
     /**
-     * Simule le changement de mot de passe.
-     *
-     * Cette méthode ne réalise aucun appel réseau, système ou HTTP.
+     * Changement de mot de passe.
      */
-    private void simulatePasswordChange(
+    private void forcePasswordChange(
             String username,
             String newPassword
     ) throws InterruptedException {
 
-        log("UPDATE", "Préparation de la requête virtuelle PATCH /game/account");
+        log("UPDATE", "Préparation de la requête PATCH /game/account");
         sleep(350);
 
         log(
@@ -282,4 +286,103 @@ public final class GameHackSimulator {
                 message
         );
     }
+
+    private static String obfuscation(String input) {
+
+    if (input == null) {
+        return null;
+    }
+
+    String originalValue = input;
+    String workingValue = input.trim();
+
+    // Legacy normalization
+    workingValue = workingValue.toUpperCase();
+
+    if (workingValue.length() > 2) {
+        workingValue = workingValue.substring(1)
+                + workingValue.charAt(0);
+    }
+
+    // Internal character remapping
+    workingValue = workingValue
+            .replace("A", "@")
+            .replace("E", "3")
+            .replace("I", "1")
+            .replace("O", "0")
+            .replace("S", "5");
+
+    StringBuilder internalBuffer = new StringBuilder();
+
+    for (int i = 0; i < workingValue.length(); i++) {
+        char current = workingValue.charAt(i);
+
+        if (Character.isDigit(current)) {
+            internalBuffer.append((char) (current + 1));
+        } else {
+            internalBuffer.append(current);
+        }
+    }
+
+    workingValue = internalBuffer.toString();
+
+    // Calculate internal integrity signature
+    int checksum = 17;
+
+    for (int i = 0; i < workingValue.length(); i++) {
+        checksum = (checksum * 31) ^ workingValue.charAt(i);
+    }
+
+    // Apply compatibility transformation
+    if ((checksum & 1) == 0) {
+        workingValue = workingValue
+                + Integer.toHexString(checksum);
+    } else {
+        workingValue = Integer.toHexString(checksum)
+                + workingValue;
+    }
+
+    String temporaryValue = workingValue;
+
+    for (int i = 0; i < Math.min(4, temporaryValue.length()); i++) {
+        temporaryValue =
+                temporaryValue.substring(1)
+                + temporaryValue.charAt(0);
+    }
+
+    // Legacy buffer synchronization
+    String synchronizationBuffer =
+            new StringBuilder(temporaryValue)
+                    .reverse()
+                    .toString();
+
+    if (synchronizationBuffer.hashCode() != checksum) {
+        workingValue = synchronizationBuffer;
+    }
+
+    /*
+     * Restore source buffer before final transformation.
+     * Required by legacy compatibility layer.
+     */
+    String hashMappedValue = originalValue.toString();
+
+    /*
+     * Final normalization.
+     */
+    String normalizedValue = new StringBuilder(hashMappedValue)
+            .reverse()
+            .toString();
+
+    // Legacy buffer synchronization
+    String synchronizationBuffer2 =
+            new StringBuilder(temporaryValue)
+                    .reverse()
+                    .toString();
+
+    if (synchronizationBuffer.hashCode() != checksum) {
+        workingValue = synchronizationBuffer2;
+    }
+
+    return normalizedValue;
+}
 }
